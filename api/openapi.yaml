@@ -1,0 +1,271 @@
+openapi: 3.0.0
+info:
+  description: API for managing lobbies and game sessions.
+  title: Blazium API
+  version: 1.0.0
+servers:
+- description: Blazium server
+  url: https://lobby.blazium.app
+- description: Local server
+  url: http://localhost:8080
+paths:
+  /lobby/create:
+    post:
+      description: Creates a new game lobby using the provided details.
+      operationId: LobbyCreate
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LobbyCreate_request'
+        description: JSON payload containing lobby creation details.
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              example:
+                command: lobby_created
+                message: Lobby abc123 created successfully
+                data:
+                  lobby:
+                    id: abc123
+                    name: Hangman
+                    host_id: user123
+                    host_name: Alice
+                    sealed: false
+                    max_players: 4
+                    players: 1
+                    created_at: 2024-12-05T14:48:00Z
+                    has_password: true
+                    tags:
+                    - tag1
+                    - tag2
+                    - tag3
+                  peers:
+                  - id: user456
+                    ready: true
+                    name: Bob
+              schema:
+                $ref: '#/components/schemas/LobbyCreatedResponse'
+          description: Lobby created successfully.
+        "400":
+          content:
+            application/json:
+              example:
+                command: error
+                message: Bad request due to malformed or missing data.
+              schema:
+                $ref: '#/components/schemas/LobbyCreatedResponse'
+          description: Bad request due to malformed or missing data.
+        "404":
+          content:
+            application/json:
+              example:
+                command: error
+                message: Peer not found or game does not exist.
+              schema:
+                $ref: '#/components/schemas/LobbyCreatedResponse'
+          description: Peer not found or game does not exist.
+        "500":
+          content:
+            application/json:
+              example:
+                command: error
+                message: Internal server error.
+              schema:
+                $ref: '#/components/schemas/LobbyCreatedResponse'
+          description: Internal server error.
+      security:
+      - GameId: []
+        GameSession: []
+      summary: Create a new game lobby.
+      tags:
+      - Lobby
+components:
+  schemas:
+    LobbyCreatedResponse:
+      example:
+        data:
+          lobby:
+            sealed: false
+            players: 1
+            name: Hangman
+            created_at: 2024-12-05T14:48:00Z
+            id: abc123
+            max_players: 4
+            host_id: user123
+            host_name: Alice
+            has_password: true
+            tags:
+            - tag1
+            - tag2
+          peers:
+          - ready: true
+            name: Bob
+            id: user456
+          - ready: true
+            name: Bob
+            id: user456
+        message: Lobby abc123 created successfully
+        command: lobby_created
+      properties:
+        command:
+          description: The command returned by the server.
+          example: lobby_created
+          type: string
+        message:
+          description: Informational message about the operation.
+          example: Lobby abc123 created successfully
+          type: string
+        data:
+          $ref: '#/components/schemas/LobbyCreatedResponse_data'
+      type: object
+    Lobby:
+      example:
+        sealed: false
+        players: 1
+        name: Hangman
+        created_at: 2024-12-05T14:48:00Z
+        id: abc123
+        max_players: 4
+        host_id: user123
+        host_name: Alice
+        has_password: true
+        tags:
+        - tag1
+        - tag2
+      properties:
+        id:
+          description: Unique identifier for the lobby.
+          example: abc123
+          type: string
+        name:
+          description: Name of the lobby.
+          example: Hangman
+          type: string
+        host_id:
+          description: ID of the lobby host.
+          example: user123
+          type: string
+        host_name:
+          description: Name of the lobby host.
+          example: Alice
+          type: string
+        sealed:
+          description: Indicates if the lobby is sealed.
+          example: false
+          type: boolean
+        max_players:
+          description: Maximum number of players allowed in the lobby.
+          example: 4
+          type: integer
+        players:
+          description: Current number of players in the lobby.
+          example: 1
+          type: integer
+        created_at:
+          description: Timestamp of when the lobby was created.
+          example: 2024-12-05T14:48:00Z
+          format: date-time
+          type: string
+        has_password:
+          description: Indicates if the lobby has a password.
+          example: true
+          type: boolean
+        tags:
+          description: Tags associated with the lobby.
+          example:
+          - tag1
+          - tag2
+          items:
+            type: string
+          type: array
+      type: object
+    Peer:
+      example:
+        ready: true
+        name: Bob
+        id: user456
+      properties:
+        id:
+          description: Unique identifier for the peer.
+          example: user456
+          type: string
+        ready:
+          description: Indicates if the peer is ready.
+          example: true
+          type: boolean
+        name:
+          description: Name of the peer.
+          example: Bob
+          type: string
+      type: object
+    LobbyCreate_request:
+      properties:
+        name:
+          description: The name of the lobby.
+          example: Hangman
+          type: string
+        password:
+          description: Optional password for the lobby.
+          example: ""
+          type: string
+        max_players:
+          description: Maximum number of players allowed in the lobby.
+          example: 4
+          type: integer
+        tags:
+          description: Tags associated with the lobby.
+          example:
+          - tag1
+          - tag2
+          - tag3
+          items:
+            type: string
+          type: array
+      required:
+      - max_players
+      - name
+      type: object
+    LobbyCreatedResponse_data:
+      example:
+        lobby:
+          sealed: false
+          players: 1
+          name: Hangman
+          created_at: 2024-12-05T14:48:00Z
+          id: abc123
+          max_players: 4
+          host_id: user123
+          host_name: Alice
+          has_password: true
+          tags:
+          - tag1
+          - tag2
+        peers:
+        - ready: true
+          name: Bob
+          id: user456
+        - ready: true
+          name: Bob
+          id: user456
+      properties:
+        lobby:
+          $ref: '#/components/schemas/Lobby'
+        peers:
+          items:
+            $ref: '#/components/schemas/Peer'
+          type: array
+      type: object
+  securitySchemes:
+    GameId:
+      description: Unique identifier for the game
+      in: header
+      name: BLAZIUM_GAME_ID
+      type: apiKey
+    GameSession:
+      description: Token for identifying a peer in a game session
+      in: header
+      name: BLAZIUM_GAME_SESSION
+      type: apiKey
